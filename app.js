@@ -1,52 +1,47 @@
-console.log("hello");
+/**
+ * 팀 배정 프로그램
+ * - old face 4명, new face 6명을 2개 팀으로 나누기
+ * - 각 팀: old face 2명 + new face 3명 = 총 5명
+ * - 각 팀에서 팀장 1명 랜덤 선출
+ */
+
+// 더미 데이터 - 포켓몬 이름 사용
+const oldFaceMembers = [
+  "피카츄", 
+  "라이츄", 
+  "파이리", 
+  "리자드"
+];
+
+const newFaceMembers = [
+  "꼬부기", 
+  "어니부기", 
+  "캐터피", 
+  "단데기", 
+  "버터플", 
+  "뿔충이"
+];
 
 /**
- * todo : old face 네명
- * todo : new face 여섯명
- * todo : old face 네명은 두 그룹으로 나누어진다.
- * todo : new face 여섯명은 두 그룹으로 나누어진다.
- * todo : 총 팀은 두개가 된다.
- * todo : old face 두명 + new face 세명 = 1팀은 총 다섯명이다.
- * todo : old face 두명 + new face 세명 = 2팀은 총 다섯명이다.
- *
- * todo : old face 네명중 두명, 두명은 랜덤으로 선출된다.(suffle 로직을 따른다)
- * todo : new face 여섯명중 세명, 세명은 랜덤으로 선출된다.(suffle 로직을 따른다)
- * todo : 팀장은 old face 두명, new face 세명 총 5명의 구성원중 1명이 랜덤으로 선출된다.
- * todo : -----> 배열 [0,1,2,3,4] 라면 맨 앞 [0]번이 팀장이 된다.
- * todo : 두명의 팀장, 두개의 팀, 각팀당 두명의 old face, 세명의 new face로 구성된다.
- *
- *
- * ? interface
- * * 1. cli로 실행하면 표가나타나는 형태를 원한다. conole.table()
- * * 2. 두개의 팀으로 고정되어있다. A팀, B팀이 보기 원활하게 작성되기를 원한다.
- *
+ * 배열을 랜덤하게 섞는 함수 (Fisher-Yates 알고리즘)
+ * @param {Array} array - 섞을 배열
+ * @returns {Array} - 섞인 새로운 배열
  */
+function shuffle(array) {
+  const newArray = [...array]; // 원본 배열을 복사
+  
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    // 배열의 요소 교환
+    [newArray[i], newArray[randomIndex]] = [newArray[randomIndex], newArray[i]];
+  }
+  
+  return newArray;
+}
 
 /**
- * ? dummy data
+ * 멤버 객체를 생성하는 클래스
  */
-
-
-/** 
- * ? 총 멤버는 열명 - 가짜로 포켓몬스터 이름으로 한다.
- * ? * old face 네명
- * ? * new face 여섯명
- * * ? old face 네명은 두 그룹으로 나누어진다.
- * * ? new face 여섯명은 두 그룹으로 나누어진다.
- * * ? 총 팀은 두개가 된다.
- * 
- * * 아래는 간단하게 생각한 구조이다.
- * 
- * * 주요 함수 이름은 teamDecision으로 생각하고 있다.
- * 
- * 
- */
-const test = {
-  type: "old face",
-  name: "공욱재",
-  isLeader: false,
-};
-
 class MakeMember {
   constructor(type, name, isLeader = false) {
     this.type = type; 
@@ -55,70 +50,90 @@ class MakeMember {
   }
 }
 
-class TotalMember {
-  totalTeamMember = [];
+/**
+ * 팀을 구성하고 팀장을 선출하는 메인 함수
+ */
+function teamDecision() {
+  console.log("=== 팀 배정 시작 ===\n");
+  
+  // 1. old face와 new face를 각각 섞기
+  const shuffledOldFace = shuffle(oldFaceMembers);
+  const shuffledNewFace = shuffle(newFaceMembers);
+  
+  console.log("섞인 old face 순서:", shuffledOldFace);
+  console.log("섞인 new face 순서:", shuffledNewFace);
+  console.log("");
+  
+  // 2. 각 팀에 배정
+  const teamA = {
+    teamName: "A팀",
+    members: []
+  };
+  
+  const teamB = {
+    teamName: "B팀", 
+    members: []
+  };
+  
+  // A팀에 old face 2명, new face 3명 배정
+  for (let i = 0; i < 2; i++) {
+    teamA.members.push(new MakeMember("old face", shuffledOldFace[i]));
+  }
+  for (let i = 0; i < 3; i++) {
+    teamA.members.push(new MakeMember("new face", shuffledNewFace[i]));
+  }
+  
+  // B팀에 나머지 old face 2명, new face 3명 배정
+  for (let i = 2; i < 4; i++) {
+    teamB.members.push(new MakeMember("old face", shuffledOldFace[i]));
+  }
+  for (let i = 3; i < 6; i++) {
+    teamB.members.push(new MakeMember("new face", shuffledNewFace[i]));
+  }
+  
+  // 3. 각 팀에서 팀장 선출 (첫 번째 멤버가 팀장)
+  const shuffledTeamA = shuffle(teamA.members);
+  const shuffledTeamB = shuffle(teamB.members);
+  
+  // 팀장 설정
+  shuffledTeamA[0].isLeader = true;
+  shuffledTeamB[0].isLeader = true;
+  
+  // 섞인 순서로 멤버 재배정
+  teamA.members = shuffledTeamA;
+  teamB.members = shuffledTeamB;
+  
+  const finalTeams = [teamA, teamB];
+  
+  // 4. 결과 출력
+  displayTeams(finalTeams);
+  
+  return finalTeams;
 }
 
+/**
+ * 팀 구성 결과를 테이블 형태로 출력하는 함수
+ * @param {Array} teams - 팀 정보 배열
+ */
+function displayTeams(teams) {
+  console.log("=== 최종 팀 구성 결과 ===\n");
+  
+  teams.forEach(team => {
+    console.log(`🏆 ${team.teamName}`);
+    console.log("─".repeat(40));
+    
+    // 테이블 형태로 출력할 데이터 준비
+    const tableData = team.members.map((member, index) => ({
+      번호: index + 1,
+      이름: member.name,
+      분류: member.type,
+      역할: member.isLeader ? "👑 팀장" : "팀원"
+    }));
+    
+    console.table(tableData);
+    console.log("");
+  });
+}
 
-const totalTeamMember = [
-  {
-    teamName: "A팀",
-    members: [
-      {
-        type: "old face",
-        name: "공욱재",
-        isLeader: false,
-      },
-            {
-        type: "old face",
-        name: "공욱재",
-        isLeader: false,
-      },
-            {
-        type: "new face",
-        name: "공욱재",
-        isLeader: false,
-      },
-            {
-        type: "new face",
-        name: "공욱재",
-        isLeader: false,
-      },
-            {
-        type: "new face",
-        name: "공욱재",
-        isLeader: false,
-      },
-    ],
-  },
-  {
-    teamName: "B팀",
-    members: [
-      {
-        type: "old face",
-        name: "공욱재",
-        isLeader: false,
-      },
-            {
-        type: "old face",
-        name: "공욱재",
-        isLeader: false,
-      },
-            {
-        type: "new face",
-        name: "공욱재",
-        isLeader: false,
-      },
-            {
-        type: "new face",
-        name: "공욱재",
-        isLeader: false,
-      },
-            {
-        type: "new face",
-        name: "공욱재",
-        isLeader: false,
-      },
-    ],
-  },
-];
+// 프로그램 실행
+teamDecision();
